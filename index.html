@@ -1,0 +1,94 @@
+<html>
+    <head>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+		<script>
+            var socket = io();
+            $(function($){
+                
+                socket.on('chat message',function(message){
+                    $("#messages").append($('<li>').text(message));
+                });
+                
+                socket.on('out',function(name){
+                    $("#messages").append($('<li>').text(name+" logged out."));
+                });
+                
+                $('#setname').submit(function(e){
+                    e.preventDefault();
+                    if(!$('#name').val())
+                        $('#nameError').html('Choose a valid name.');
+                    else{
+                        socket.emit('new user',$('#name').val(),function(data){
+                            if(data){
+                                $('#namewrap').hide();
+                                $('#contentwrap').show();
+                            }
+                            else
+                                $('#nameError').html('Choose another name');
+                        });
+                        $('#name').val('');
+                    }
+                });
+                
+                $('#msgform').submit(function(e){
+                    e.preventDefault();
+					socket.emit('chat message', $('#m').val() );
+					$('#m').val('');
+				});
+
+				socket.on('names', function(message){
+						var html = '<b>Connected Users<b><br><br>';
+						for(i=0; i < message.length; i++){
+							html+= message[i] + '<br/>'
+						}
+						$('#users').html(html);
+				});
+			});
+
+        </script>
+       	<title>My Chat</title>
+      	<style>
+            
+     		 body { font: 13px Helvetica, Arial; background-color:#4d4e53;color:red }
+     		 #msgform { background: #000; padding: 3px; position: fixed; bottom: 0; width: 60%; }
+     		 #m { border: 0; padding: 10px; width: 90%; margin-right: .5%;}
+     		 #buttonf { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+     		 #messages { list-style-type: none; margin: 0; padding: 0; font-size:20px}
+     		 #messages li { padding: 5px 10px;width:60%; }
+     		 #messages li:nth-child(odd) { background: #eee; }
+			 
+			 #contentwrap {
+				 display: none;
+			 }
+            
+			 #namewrap {
+				 margin-left: 400; 
+				 margin-top:300;
+			 }
+            
+  	  	</style>
+  	  	
+  </head>
+  
+  <body>
+        <div id="namewrap">
+             <h1 style="margin-left:50"> Enter a username </h1>
+             <p id="nameError"></p>
+         
+		    <form id="setname">
+                 <input size="35" id="name" autofocus>
+                 <input type="submit">
+		    </form>
+		</div>
+       
+        <div id="contentwrap">
+			<div id="users" style="position:absolute;right:20%; font-size:20px ; margin-top:200;"></div>
+            <ul id="messages"></ul>
+            <form id="msgform">
+                  <input id="m" autocomplete=off autofocus >
+                  <input type="submit" id="buttonf">
+            </form>
+      </div>
+  </body>
+</html>
